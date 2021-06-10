@@ -56,15 +56,19 @@ public class MemberDao {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
-			try {
-				if (con != null) con.close();//Connection 자원을 반납
-				if (pstmt != null) pstmt.close();
-				if (rs != null) rs.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			close(con, pstmt, rs);
 		}
 		
 		return list;
+	}
+
+	private void close(Connection con, PreparedStatement pstmt, ResultSet rs) {
+		try {
+			if (con != null) con.close();//Connection 자원을 반납
+			if (pstmt != null) pstmt.close();
+			if (rs != null) rs.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 }
