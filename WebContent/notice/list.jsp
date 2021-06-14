@@ -6,7 +6,6 @@
 <%@ include file="../inc/header.jsp" %>
 <%
 	String tempPage = request.getParameter("page");
-	/* out.println(tempPage); */
 	int cPage = 0;
 	if(tempPage==null || tempPage.length()==0){
 		cPage = 1;
@@ -20,10 +19,19 @@
 		cPage = 1 ---> 0, 10
 		cPage = 2 ---> 10, 10
 		cPage = 3 ---> 20, 10
+		start 0, 10, 20,   displayCount=10
+		An = a1+(n-1)*d ===> a1->0, n->cpage, d->displayCount)
 	*/
 	
 	////////★
 	int displayCount = 3; //페이지에 보여줄 리스트 개수
+	int totalRows = 0; //dao.getRows(); //총 rows
+	int currentBlock = 0;
+	int totalBlock = 0;
+	int totalPage = 0; 
+	int startPage = 0;
+	int endPage = 0;
+	int pageDisplayCount = 5; // 5--> previous 1 2 3 4 5 next
 	int start = (cPage-1)*displayCount; //a+(n-1)d
 	NoticeDao dao = NoticeDao.getInstance();
 	ArrayList<NoticeDto> list = dao.select(start, displayCount);
@@ -68,7 +76,7 @@
 							<tr>
 								<th scope="row"><%=dto.getNum() %></th>
 								<td><%=dto.getWriter() %></td>
-								<td><a href="view.jsp"><%=dto.getTitle() %></a></td>
+								<td><a href="view.jsp?num=<%=dto.getNum()%>&page=<%=cPage%>"><%=dto.getTitle() %></a></td>
 								<td><%=dto.getRegdate() %></td>
 							</tr>
 						<%
@@ -90,14 +98,8 @@
 						Previous 1 2 3 4 5 6 7 8 9 10 Next  => currentBlock : 1block
 						Previous 11 12 13 Next 				=> currentBlock : 2block
 					*/
-					int totalRows = dao.getRows(); //총 rows
-					int currentBlock = 0;
-					int totalBlock = 0;
-					int totalPage = 0; 
-					int startPage = 0;
-					int endPage = 0;
-					////////★
-					int pageDisplayCount = 5; // 5--> previous 1 2 3 4 5 next 
+					totalRows = dao.getRows(); //128
+					
 					
 					//총 페이지수
 					if(totalRows % displayCount==0){
@@ -137,7 +139,7 @@
 					//start숫자, end숫자 
 					startPage = 1 + (currentBlock -1)*pageDisplayCount;
 					endPage = pageDisplayCount + (currentBlock -1)*pageDisplayCount;
-					//BLOCK내에서 끝 처리
+					//BLOCK내에서 끝 처리 -- 안하게되면 데이터없는 페이지까지 보여줌
 					if(currentBlock == totalBlock){
 						endPage = totalPage;
 					}
@@ -145,32 +147,45 @@
 					
 					<nav aria-label="Page navigation example">
 						<ul class="pagination justify-content-center">
-						<%if(currentBlock==1){ %>
-							<li class="page-item disabled">
-								<a class="page-link" href="#"tabindex="-1" aria-disabled="true">Previous</a>
-							</li>
+						<%-- 
+							<%if(currentBlock==1){ %>
+								<li class="page-item disabled">
+									<a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+								</li>
 							<%}else{ %>
-							<li class="page-item">
+								<li class="page-item <%if(currentBlock==1){ %> disabled">
+									<a class="page-link" href="list.jsp?page=<%=startPage-1%>"tabindex="-1" aria-disabled="true">Previous</a>
+								</li>
+							<%} %> 
+							아래와 같이 간단하게 가능.
+						--%>
+							<li class="page-item <%if(currentBlock==1){%> disabled <%}%>">
 								<a class="page-link" href="list.jsp?page=<%=startPage-1%>"tabindex="-1" aria-disabled="true">Previous</a>
 							</li>
-							<%} %>
 							<% for(int i=startPage; i<=endPage; i++){%>
 							<li class="page-item"><a class="page-link" href="list.jsp?page=<%=i%>"><%=i %></a></li>
 							<%} %>
+						<%-- 
 							<%if(totalBlock==currentBlock){ %>
-							<li class="page-item disabled">
-								<a class="page-link" href="#">Next</a>
-							</li>
+								<li class="page-item disabled">
+									<a class="page-link" href="#">Next</a>
+								</li>
 							<%}else{ %>
-							<li class="page-item">
-								<a class="page-link" href="list.jsp?page=<%=endPage+1%>">Next</a>
-							</li>
-							<%} %>
-						</ul>
+								<li class="page-item">
+									<a class="page-link" href="list.jsp?page=<%=endPage+1%>">Next</a>
+								</li>
+							<%} %> 
+						아래와 같이 간단하게 가능.
+						--%>
+						<li class="page-item<%if(totalBlock==currentBlock){%> disabled <%}%>">
+							<a class="page-link"href="list.jsp?page=<%=endPage + 1%>">Next</a>
+						</li>
+
+					</ul>
 					</nav>
 					<%-- pagination end --%>
 					<div class="text-right">
-						<a class="btn btn-primary" href="write.jsp" role="button">글쓰기</a>
+						<a class="btn btn-primary" href="write.jsp?page=<%=cPage %>" role="button">글쓰기</a>
 					</div>
 				</div>
 				<%-- table end --%>

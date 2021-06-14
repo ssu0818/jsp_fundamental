@@ -1,6 +1,45 @@
 <!-- view.jsp -->
+<%@page import="kr.or.kpc.dto.NoticeDto"%>
+<%@page import="kr.or.kpc.dao.NoticeDao"%>
 <%@ page pageEncoding="utf-8" %>
 <%@ include file="../inc/header.jsp" %>
+
+<%
+	String tempPage = request.getParameter("page");
+	String tempNum = request.getParameter("num");
+	int cPage = 0;
+	int num = 0;
+	if(tempPage==null || tempPage.length()==0){
+		cPage = 1;
+	}
+	try{
+		cPage = Integer.parseInt(tempPage);
+	}catch(NumberFormatException e){
+		cPage = 1;		
+	}
+		
+	if(tempNum==null || tempNum.length()==0){
+		num = -1;
+	}
+	try{
+		num = Integer.parseInt(tempNum);
+	}catch(NumberFormatException e){
+		num = -1;		
+	}
+	
+	NoticeDao dao = NoticeDao.getInstance();
+	NoticeDto dto = dao.select(num);
+	if(dto == null){
+		num = -1;
+	}
+	
+	if(num == -1){
+%>	<script>
+		alert('존재하지 않는 글입니다.');
+		location.href="list.jsp?page=<%=cPage%>";
+	</script>
+	<%}else{ %>
+
 	<!-- breadcrumb start -->
 	<nav aria-label="breadcrumb">
 		<ol class="breadcrumb">
@@ -19,19 +58,22 @@
 	  		<%-- form start --%>
 			<form name="noticeForm" method="post" action="savdDb.jsp">
 				<div class="form-group">
-					작성자 : 이름1
+					<strong>작성자</strong> : <p><%=dto.getWriter() %></p>
 				</div>
 				<div class="form-group">
-					제목 : 제목1
+					<strong>날짜</strong> : <p><%=dto.getRegdate() %></p>
 				</div>
 				<div class="form-group">
-					내용 : 내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1내용1
+					<strong>제목</strong> : <p><%=dto.getTitle() %></p>
+				</div>
+				<div class="form-group">
+					<strong>내용</strong> : <p><%=dto.getContent().replaceAll("\n","<br>") %></p>
 				</div>
 			</form>
 			<div class="text-right">
-				<a class="btn btn-secondary" href="list.jsp" role="button">목록</a>
-				<a class="btn btn-success" href="modify.jsp" role="button">수정</a>
-				<a class="btn btn-danger" id="deleteNotice" role="button">삭제</a>
+				<a class="btn btn-secondary" href="list.jsp?page=<%=cPage %>" role="button">목록</a>
+				<a class="btn btn-success" href="modify.jsp?num=<%=num %>&page=<%=cPage %>" role="button">수정</a>
+				<a class="btn btn-danger" href="deleteDb.jsp?num=<%=num %>&page=<%=cPage %>" role="button">삭제</a>
 			</div>
 			<%-- form end --%>
 		</div>
@@ -40,3 +82,4 @@
   	</div>
   	<!-- container end -->
 <%@ include file="../inc/footer.jsp" %>
+<%}%>
